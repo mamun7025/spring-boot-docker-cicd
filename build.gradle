@@ -33,5 +33,5 @@ tasks.named('test') {
 }
 
 bootJar {
-	archiveFileName = "springbootcicddocker.jar"
+	archiveFileName = "spring-boot-docker-cicd.jar"
 }
