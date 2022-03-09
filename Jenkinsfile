@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        imageName = 'mn7025/spring-boot-docker-cicd-v2'
+        imagename = 'mn7025/spring-boot-docker-cicd-v2'
+        containerName = 'spring-boot-docker-cicd-v2'
         registryCredential = 'DockerCredential'
         dockerImage = ''
     }
@@ -38,7 +39,7 @@ pipeline {
         stage('Stage 4: Building docker image') {
             steps{
                 script {
-                    dockerImage = docker.build imageName
+                    dockerImage = docker.build imagename
                 }
             }
         }
@@ -61,6 +62,41 @@ pipeline {
             }
 
         }
+
+        // Stopping Docker containers for cleaner Docker run
+        stage('docker stop container') {
+            steps {
+                // for windows
+                bat 'docker images'
+                bat 'docker ps'
+                bat "docker container stop ${env.containerName}"
+                bat "docker container rm ${env.containerName}"
+
+
+                // for linux
+                //sh 'docker ps -f name=mypythonappContainer -q | xargs --no-run-if-empty docker container stop'
+                //sh 'docker container ls -a -fname=mypythonappContainer -q | xargs -r docker container rm'
+            }
+        }
+
+
+        stage('Run Docker container on local machine') {
+            steps {
+                echo 'Run Docker container on local machine...'
+                // windows
+                bat "docker run --name ${env.containerName} -d -p 8585:9696 ${env.imagename}"
+                // linux
+                // sh "docker run -d -p 4030:80 nikhilnidhi/nginxtest"
+            }
+        }
+
+        stage('Run Docker container on remote hosts') {
+            steps {
+                echo 'Run Docker container on remote hosts'
+                // sh "docker -H ssh://jenkins@172.31.28.25 run -d -p 4001:80 nikhilnidhi/nginxtest"
+            }
+        }
+
 
     }
     post {
